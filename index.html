@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Bingo</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Jersey+10&display=swap');
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: "Jersey 10", sans-serif;
+            text-transform: uppercase;
+        }
+        button {
+            font-family: "Jersey 10", sans-serif;
+            text-transform: uppercase;
+        }
+        #container {
+            text-align: center;
+            display: flex;
+        }
+        #image-display {
+            max-width: 700px;
+            height: auto;
+        }
+        #list {
+            position: absolute;
+            left: 10px;
+            top: 20px;
+            text-align: left;
+            font-size: 18px;
+        }
+        ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .list-item {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            margin-bottom: 2px;
+        }
+        .square-number {
+            width: 30px;
+            height: 30px;
+            background-color: green;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 5px;
+            font-weight: bold;
+        }
+        #start-button {
+            font-size: 60px;
+        }
+        #reset-button, #next-button, #start-button {
+            padding: 10px 20px;
+            cursor: pointer;
+            text-transform: uppercase;
+            background: green;
+            color: white;
+            border: 0;
+        }
+        #reset-button, #next-button {
+            position: absolute;
+            bottom: 10px;
+            font-size: 30px;
+        }
+        #reset-button {
+            background: red;
+        }
+        #reset-button, #start-button {
+            left: 10px;
+        }
+        #next-button {
+            right: 10px;
+        }
+        #completed-message {
+            display: none;
+            font-size: 80px;
+            color: red;
+            position: absolute;
+            height: 100vh;
+            width: 100vw;
+            background: rgba(255, 255, 255, 0.9);
+            top: 0;
+            left: 0;
+            text-align: center;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            margin: 0;
+        }
+        #image-title {
+            display: flex;
+            align-items: center;
+            font-size: 80px;
+            width: 500px;
+        }
+        .title-number {
+            background: green;
+            color: white;
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            margin-right: 20px;
+            font-weight: bold;
+            justify-content: center;
+        }
+        #start-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #start-message {
+            font-size: 100px;
+        }
+
+        /* Modal Styles */
+        #reset-modal {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 30px;
+        }
+        .modal-content p {
+            margin: 0;
+        }
+        .modal-buttons {
+            margin-top: 20px;
+        }
+        .modal-buttons button {
+            margin: 0 10px;
+            padding: 10px 20px;
+            font-size: 30px;
+            cursor: pointer;
+        }
+        .modal-buttons button.confirm {
+            background: red;
+            color: white;
+            border: none;
+        }
+        .modal-buttons button.cancel {
+            background: lightgray;
+            color: black;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="list">
+        <ul id="previous-list"></ul>
+    </div>
+
+    <div id="container" style="display: none;">
+        <img id="image-display" src="" alt="Random Image">
+        <h2 id="image-title"></h2>
+        <h1 id="completed-message">All numbers have been drawn</h1>
+    </div>
+
+    <div id="start-screen">
+        <h1 id="start-message">Minecraft Bingo</h1>
+        <button id="start-button">Start Game</button>
+    </div>
+
+    <button id="next-button" style="display: none;">↵ Draw number</button>
+    <button id="reset-button" style="display: none;">Reset game</button>
+
+    <!-- Custom Reset Modal -->
+    <div id="reset-modal">
+        <div class="modal-content">
+            <p>Are you sure you want to reset the game?</p>
+            <div class="modal-buttons">
+                <button class="cancel">No, cancel</button>
+                <button class="confirm">Yes, reset</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const images = [
+            { src: 'images/1.png', title: 'Bow', number: 1 },
+            { src: 'images/2.png', title: 'Carrots', number: 2 },
+            { src: 'images/3.png', title: 'Chicken', number: 3 },
+            { src: 'images/4.png', title: 'Compass', number: 4 },
+            { src: 'images/5.png', title: 'Cow', number: 5 },
+            { src: 'images/6.png', title: 'Creeper', number: 6 },
+            { src: 'images/7.png', title: 'Diamonds', number: 7 },
+            { src: 'images/8.png', title: 'Enderman', number: 8 },
+            { src: 'images/9.png', title: 'Fish', number: 9 },
+            { src: 'images/10.png', title: 'Ocelot', number: 10 },
+            { src: 'images/11.png', title: 'Pickaxe', number: 11 },
+            { src: 'images/12.png', title: 'Pig', number: 12 },
+            { src: 'images/13.png', title: 'Potion', number: 13 },
+            { src: 'images/14.png', title: 'Pumpkin', number: 14 },
+            { src: 'images/15.png', title: 'Redstone', number: 15 },
+            { src: 'images/16.png', title: 'Skeleton', number: 16 },
+            { src: 'images/17.png', title: 'Slime', number: 17 },
+            { src: 'images/18.png', title: 'Spider', number: 18 },
+            { src: 'images/19.png', title: 'Steve', number: 19 },
+            { src: 'images/20.png', title: 'Sword', number: 20 },
+            { src: 'images/21.png', title: 'TNT', number: 21 },
+            { src: 'images/22.png', title: 'Villager', number: 22 },
+            { src: 'images/23.png', title: 'Watermelon', number: 23 },
+            { src: 'images/24.png', title: 'Wolf', number: 24 }
+        ];
+
+        let remainingImages = [...images];
+        let usedImages = [];
+        let gameStarted = false;
+
+        function randomImage() {
+            if (remainingImages.length === 0) {
+                document.getElementById('completed-message').style.display = 'flex';
+                document.getElementById('next-button').disabled = true; // Disable the Next button
+                return;
+            }
+
+            const randomIndex = Math.floor(Math.random() * remainingImages.length);
+            const selectedImage = remainingImages.splice(randomIndex, 1)[0];
+
+            document.getElementById('image-display').src = selectedImage.src;
+            document.getElementById('image-title').innerHTML = `<span class="title-number">${selectedImage.number}</span>${selectedImage.title}`;
+
+            // Add to list on the left
+            const listItem = document.createElement('li');
+            listItem.classList.add('list-item');
+            listItem.innerHTML = `
+                <span class="square-number">${selectedImage.number}</span>
+                <span>${selectedImage.title}</span>
+            `;
+            document.getElementById('previous-list').appendChild(listItem);
+
+            usedImages.push(selectedImage);
+        }
+
+        function startGame() {
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('container').style.display = 'flex';
+            document.getElementById('next-button').style.display = 'block';
+            document.getElementById('reset-button').style.display = 'block';
+            gameStarted = true;
+            randomImage();
+        }
+
+        // Start game on button click
+        document.getElementById('start-button').addEventListener('click', startGame);
+
+        // Show the reset confirmation modal
+        function showResetModal() {
+            document.getElementById('reset-modal').style.display = 'flex';
+        }
+
+        // Hide the reset confirmation modal
+        function hideResetModal() {
+            document.getElementById('reset-modal').style.display = 'none';
+        }
+
+        // Reset game
+        function resetGame() {
+            remainingImages = [...images];
+            usedImages = [];
+            document.getElementById('previous-list').innerHTML = '';
+            document.getElementById('image-display').src = '';
+            document.getElementById('image-title').textContent = '';
+            document.getElementById('completed-message').style.display = 'none';
+            document.getElementById('next-button').disabled = false;
+
+            // Show the start screen again
+            document.getElementById('container').style.display = 'none';
+            document.getElementById('start-screen').style.display = 'flex';
+            document.getElementById('next-button').style.display = 'none';
+            document.getElementById('reset-button').style.display = 'none';
+            gameStarted = false;
+            hideResetModal();
+        }
+
+        // Reset button clicked, show confirmation modal
+        document.getElementById('reset-button').addEventListener('click', showResetModal);
+
+        // Modal: Confirm reset
+        document.querySelector('.confirm').addEventListener('click', resetGame);
+
+        // Modal: Cancel reset
+        document.querySelector('.cancel').addEventListener('click', hideResetModal);
+
+        // Show next image on button click or space/return key press
+        function showNextImage() {
+            if (!gameStarted) {
+                startGame(); // If the game hasn't started, start it
+            } else {
+                randomImage(); // Otherwise, show the next image
+            }
+        }
+
+        document.getElementById('next-button').addEventListener('click', showNextImage);
+
+        // Add event listener for space bar and return key
+        document.addEventListener('keydown', (event) => {
+            if (event.code === 'Space' || event.code === 'Enter') {
+                showNextImage();
+            }
+        });
+    </script>
+</body>
+</html>
